@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DevOps Flow — finops-cloud-toolkit</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0F1117; --surface: #1A1D27; --surface2: #22263A; --border: #2A2F45;
+  --text: #E2E8F0; --muted: #64748B; --white: #FFFFFF;
+  --accent: #F59E0B; --accent-bg: rgba(245,158,11,.10); --accent-border: rgba(245,158,11,.30);
+  --step-ci: #38BDF8; --step-cd: #34D399; --step-obs: #A78BFA; --step-gate: #FB923C;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: 'Outfit', sans-serif; min-height: 100vh; }
+body::before { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E"); pointer-events: none; z-index: 0; }
+.page { position: relative; z-index: 1; max-width: 1480px; margin: 0 auto; padding: 48px 32px 80px; }
+
+/* HEADER */
+.header { margin-bottom: 48px; display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 20px; }
+.header-left {}
+.header-tag { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--accent); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+.header-tag::before { content: ''; width: 32px; height: 2px; background: var(--accent); border-radius: 2px; }
+.header h1 { font-size: clamp(28px, 3.5vw, 46px); font-weight: 800; line-height: 1.1; color: var(--white); }
+.header h1 span { color: var(--accent); }
+.header p { color: var(--muted); font-size: 15px; margin-top: 8px; max-width: 600px; }
+.badges { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+.badge { font-family: 'IBM Plex Mono', monospace; font-size: 11px; padding: 4px 12px; border-radius: 6px; border: 1px solid; font-weight: 600; letter-spacing: 1px; }
+
+/* LEGEND */
+.legend { display: flex; gap: 20px; flex-wrap: wrap; padding: 14px 20px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 36px; }
+.legend-title { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; }
+.legend-item { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--muted); font-family: 'IBM Plex Mono', monospace; }
+.legend-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+
+/* LANES */
+.lanes { display: flex; flex-direction: column; gap: 4px; }
+.section-div { display: flex; align-items: center; gap: 16px; margin: 20px 0 6px 136px; }
+.section-div::before { content: ''; flex: 1; height: 1px; background: var(--border); }
+.section-div span { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--muted); letter-spacing: 3px; text-transform: uppercase; white-space: nowrap; }
+.section-div::after { content: ''; width: 40px; height: 1px; background: var(--border); }
+.lane { display: flex; align-items: stretch; }
+.lane-label { width: 120px; flex-shrink: 0; display: flex; align-items: center; justify-content: flex-end; padding-right: 16px; }
+.lane-label span { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 2px; text-align: right; }
+.lane-content { flex: 1; display: flex; align-items: center; gap: 10px; min-height: 90px; padding: 10px 0 10px 16px; border-left: 2px solid var(--border); flex-wrap: nowrap; overflow-x: auto; }
+
+/* STEP */
+.step { position: relative; background: var(--surface); border: 1.5px solid var(--border); border-radius: 12px; padding: 14px 18px; min-width: 175px; max-width: 215px; flex-shrink: 0; transition: transform .15s, box-shadow .15s; cursor: default; }
+.step:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(0,0,0,.45); z-index: 10; }
+.step::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--sc); border-radius: 12px 12px 0 0; }
+.step-num { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--sc); font-weight: 700; letter-spacing: 1px; margin-bottom: 6px; }
+.step-title { font-size: 13px; font-weight: 700; color: var(--white); margin-bottom: 6px; line-height: 1.3; }
+.step-items { list-style: none; }
+.step-items li { font-size: 10px; color: var(--muted); font-family: 'IBM Plex Mono', monospace; padding-left: 10px; position: relative; margin-bottom: 3px; }
+.step-items li::before { content: '›'; position: absolute; left: 0; color: var(--sc); }
+.step[data-tip]:hover::after { content: attr(data-tip); position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%); background: #1E293B; color: var(--text); font-size: 11px; padding: 8px 12px; border-radius: 8px; white-space: normal; max-width: 260px; font-family: 'IBM Plex Mono', monospace; z-index: 100; pointer-events: none; box-shadow: 0 8px 24px rgba(0,0,0,.4); border: 1px solid var(--border); }
+
+/* ARROWS & GATEWAY */
+.arr { flex-shrink: 0; font-size: 18px; color: var(--cc, var(--muted)); padding: 0 2px; }
+.gateway { display: flex; align-items: center; gap: 8px; background: var(--surface2); border: 2px solid var(--gc, var(--step-gate)); border-radius: 10px; padding: 10px 16px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 700; color: var(--gc, var(--step-gate)); letter-spacing: 1px; text-transform: uppercase; flex-shrink: 0; }
+
+/* PARALLEL */
+.parallel-wrap { background: var(--surface2); border: 1.5px dashed var(--border); border-radius: 12px; padding: 16px 14px 14px; position: relative; display: flex; gap: 10px; flex: 1; flex-wrap: wrap; }
+.parallel-label { position: absolute; top: -10px; left: 16px; background: var(--surface2); padding: 0 8px; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--step-ci); letter-spacing: 2px; }
+.parallel-wrap .step { flex: 1; min-width: 150px; max-width: none; }
+
+/* METRICS */
+.metrics-bar { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 36px; padding: 20px 24px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; }
+.metric { flex: 1; min-width: 130px; }
+.metric-label { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px; }
+.metric-value { font-size: 24px; font-weight: 800; }
+.metric-sub { font-size: 11px; color: var(--muted); margin-top: 2px; font-family: 'IBM Plex Mono', monospace; }
+
+/* FOOTER */
+.footer { margin-top: 48px; padding-top: 20px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+.footer span { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="header">
+    <div class="header-left">
+      <div class="header-tag">DevOps Deployment Flow</div>
+      <h1>💰 <span>finops-cloud-toolkit</span></h1>
+      <p>Pipeline de otimização e análise de custos multicloud — AWS · OCI · GCP</p>
+      <div class="badges">
+        <span class="badge" style="color:#F59E0B;border-color:#F59E0B;background:rgba(245,158,11,.1)">Python 3.11</span>
+        <span class="badge" style="color:#FF9900;border-color:#FF9900;background:rgba(255,153,0,.1)">AWS Cost Explorer</span>
+        <span class="badge" style="color:#F80000;border-color:#F80000;background:rgba(248,0,0,.1)">OCI Usage API</span>
+        <span class="badge" style="color:#4285F4;border-color:#4285F4;background:rgba(66,133,244,.1)">GCP Billing</span>
+        <span class="badge" style="color:#10b981;border-color:#10b981;background:rgba(16,185,129,.1)">FinOps Certified</span>
+        <span class="badge" style="color:#A78BFA;border-color:#A78BFA;background:rgba(167,139,250,.1)">Poetry · pytest</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="legend">
+    <span class="legend-title">Legenda —</span>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--step-ci)"></div>CI / Validação</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--accent)"></div>Extração de Dados</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--step-cd)"></div>Carga / Relatório</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--step-gate)"></div>Gateway / Aprovação</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--step-obs)"></div>Observabilidade / Notificação</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#EF4444"></div>Aprovação Manual</div>
+  </div>
+
+  <div class="lanes">
+
+    <!-- ① CI -->
+    <div class="section-div"><span>① Fase CI — Integração Contínua</span></div>
+
+    <div class="lane">
+      <div class="lane-label"><span>Developer</span></div>
+      <div class="lane-content">
+        <div class="step" style="--sc:var(--step-ci)" data-tip="Hooks executados antes de qualquer commit: yamllint valida sintaxe dos pipelines, Ruff e Black garantem qualidade do código Python, Gitleaks impede secrets hardcoded no histórico Git.">
+          <div class="step-num">01 · PRE-COMMIT</div>
+          <div class="step-title">Validação Local</div>
+          <ul class="step-items">
+            <li>YAML lint</li>
+            <li>Ruff + Black</li>
+            <li>Gitleaks (secrets)</li>
+          </ul>
+        </div>
+        <div class="arr" style="--cc:var(--step-ci)">→</div>
+        <div class="step" style="--sc:var(--step-ci)" data-tip="Pull Request com template de checklist obrigatório. Branch protection ativa: merge só é permitido após aprovação de 1 par e CI verde.">
+          <div class="step-num">02 · PULL REQUEST</div>
+          <div class="step-title">Code Review</div>
+          <ul class="step-items">
+            <li>Peer review (1 par)</li>
+            <li>PR template</li>
+            <li>Branch protection</li>
+          </ul>
+        </div>
+        <div class="arr" style="--cc:var(--step-ci)">→</div>
+        <div class="step" style="--sc:var(--step-ci)" data-tip="Pipeline CI no GitHub Actions: executa pytest com mocks da API AWS (sem custo real), mypy --strict para type safety e Bandit para análise estática de segurança.">
+          <div class="step-num">03 · CI PIPELINE</div>
+          <div class="step-title">Testes & Análise</div>
+          <ul class="step-items">
+            <li>pytest + coverage ≥80%</li>
+            <li>mypy --strict</li>
+            <li>Bandit SAST</li>
+          </ul>
+        </div>
+        <div class="arr" style="--cc:var(--step-gate)">→</div>
+        <div class="gateway" style="--gc:var(--step-gate)">🔷 QUALITY GATE</div>
+      </div>
+    </div>
+
+    <!-- ② STAGING -->
+    <div class="section-div"><span>② Fase Staging — Validação Funcional</span></div>
+
+    <div class="lane">
+      <div class="lane-label"><span>Staging</span></div>
+      <div class="lane-content">
+        <div class="step" style="--sc:var(--accent)" data-tip="Pipeline roda com --dry-run contra contas de staging das 3 clouds. Valida autenticação, estrutura de dados e conectividade sem gerar custos reais ou alterar produção.">
+          <div class="step-num">04 · DEPLOY STAGING</div>
+          <div class="step-title">Dry-run Funcional</div>
+          <ul class="step-items">
+            <li>--dry-run em staging</li>
+            <li>Credenciais staging</li>
+            <li>Validate outputs</li>
+          </ul>
+        </div>
+        <div class="arr" style="--cc:var(--accent)">→</div>
+        <div class="parallel-wrap">
+          <span class="parallel-label">⟳ execução paralela</span>
+          <div class="step" style="--sc:var(--accent)" data-tip="cost_explorer.py consulta AWS Cost Explorer por serviço/conta/tag. idle_resources.py detecta EC2 paradas, instâncias com CPU < 5% nos últimos 14 dias e volumes EBS não attachados.">
+            <div class="step-num">05a · AWS</div>
+            <div class="step-title">Cost Explorer + Idle</div>
+            <ul class="step-items">
+              <li>cost_explorer.py</li>
+              <li>idle_resources.py</li>
+              <li>Output JSON</li>
+            </ul>
+          </div>
+          <div class="step" style="--sc:var(--accent)" data-tip="usage_report.py consulta OCI Usage API para coletar consumo por compartment, serviço e recurso. Output em JSON particionado por data.">
+            <div class="step-num">05b · OCI</div>
+            <div class="step-title">Usage Report</div>
+            <ul class="step-items">
+              <li>usage_report.py</li>
+              <li>Usage API v2</li>
+              <li>Output JSON</li>
+            </ul>
+          </div>
+          <div class="step" style="--sc:var(--accent)" data-tip="billing_export.py consulta o dataset de Billing Export no BigQuery para coletar custos por serviço, projeto e label no GCP.">
+            <div class="step-num">05c · GCP</div>
+            <div class="step-title">Billing Export</div>
+            <ul class="step-items">
+              <li>billing_export.py</li>
+              <li>BigQuery dataset</li>
+              <li>Output JSON</li>
+            </ul>
+          </div>
+        </div>
+        <div class="arr" style="--cc:var(--step-cd)">→</div>
+        <div class="step" style="--sc:var(--step-cd)" data-tip="report_generator.py consolida os JSONs das 3 clouds em um relatório HTML executivo e CSV. O HTML gerado é validado visualmente antes de ir a produção.">
+          <div class="step-num">06 · RELATÓRIO</div>
+          <div class="step-title">Relatório Amostra</div>
+          <ul class="step-items">
+            <li>report_generator.py</li>
+            <li>HTML + CSV preview</li>
+            <li>Validação visual</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- APROVAÇÃO -->
+    <div class="lane">
+      <div class="lane-label"><span>Aprovação</span></div>
+      <div class="lane-content">
+        <div class="gateway" style="--gc:#EF4444">🛑 APROVAÇÃO MANUAL — FinOps Lead</div>
+        <div class="arr" style="--cc:#EF4444">→</div>
+        <div class="step" style="--sc:#EF4444" data-tip="Checklist de Definition of Done validado pelo FinOps Lead antes de liberar para produção: relatório sem dados sensíveis (PII), cobertura de testes ≥80% e change ticket aberto no ITSM.">
+          <div class="step-num">CHECKLIST DOD</div>
+          <div class="step-title">Definition of Done</div>
+          <ul class="step-items">
+            <li>Sem dados sensíveis</li>
+            <li>Coverage ≥80%</li>
+            <li>Change ticket aberto</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ③ PRODUÇÃO -->
+    <div class="section-div"><span>③ Fase Produção — Scheduled Job</span></div>
+
+    <div class="lane">
+      <div class="lane-label"><span>Produção</span></div>
+      <div class="lane-content">
+        <div class="step" style="--sc:var(--step-cd)" data-tip="GitHub Actions com cron semanal (toda segunda às 08h). Credenciais via IAM Role — sem Access Keys armazenados em disco ou variáveis de ambiente. Executa: python main.py --days 30 --product all">
+          <div class="step-num">07 · SCHEDULED JOB</div>
+          <div class="step-title">Execução Produção</div>
+          <ul class="step-items">
+            <li>GitHub Actions (cron)</li>
+            <li>IAM Role (sem chave)</li>
+            <li>--days 30 --product all</li>
+          </ul>
+        </div>
+        <div class="arr" style="--cc:var(--step-cd)">→</div>
+        <div class="step" style="--sc:var(--step-cd)" data-tip="Relatório HTML e CSV gerados, salvos no S3 ou SharePoint e link enviado automaticamente para o canal FinOps no Teams/Slack. Pronto para apresentação executiva.">
+          <div class="step-num">08 · ENTREGA</div>
+          <div class="step-title">Relatório Executivo</div>
+          <ul class="step-items">
+            <li>HTML + CSV gerados</li>
+            <li>Upload S3 / SharePoint</li>
+            <li>Notif. Teams / Slack</li>
+          </ul>
+        </div>
+        <div class="arr" style="--cc:var(--step-obs)">→</div>
+        <div class="step" style="--sc:var(--step-obs)" data-tip="Monitoramento do próprio pipeline: taxa de sucesso semanal, tempo de execução e alertas quando custo total aumentar mais de 20% em relação ao mês anterior.">
+          <div class="step-num">09 · OBSERVABILITY</div>
+          <div class="step-title">Monitoramento</div>
+          <ul class="step-items">
+            <li>Pipeline success rate</li>
+            <li>Execution time SLO</li>
+            <li>Alerta: custo +20%</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="metrics-bar">
+    <div class="metric">
+      <div class="metric-label">Frequência</div>
+      <div class="metric-value" style="color:var(--accent)">Semanal</div>
+      <div class="metric-sub">Toda segunda — 08h</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Lead Time</div>
+      <div class="metric-value" style="color:var(--step-cd)">~5 min</div>
+      <div class="metric-sub">Commit → relatório em prod</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Cobertura Testes</div>
+      <div class="metric-value" style="color:var(--step-ci)">≥80%</div>
+      <div class="metric-sub">Quality gate bloqueante</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Clouds Cobertas</div>
+      <div class="metric-value" style="color:var(--accent)">3</div>
+      <div class="metric-sub">AWS · OCI · GCP</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Resultado Real</div>
+      <div class="metric-value" style="color:#10b981">-23%</div>
+      <div class="metric-sub">Redução de custos AWS</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Economia OCI</div>
+      <div class="metric-value" style="color:#10b981">-10%</div>
+      <div class="metric-sub">Recorrente mensal</div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span>finops-cloud-toolkit · v1.0</span>
+    <span>Ivonaldo Micheluti Dias · Cloud & FinOps Engineer</span>
+    <span>github.com/ivonaldomdias/finops-cloud-toolkit</span>
+  </div>
+
+</div>
+</body>
+</html>
