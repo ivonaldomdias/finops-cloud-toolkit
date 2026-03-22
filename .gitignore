@@ -1,0 +1,26 @@
+# Ambiente
+.env
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+
+# Outputs gerados
+reports/output/
+reports/data/*.json
+
+# Credenciais (NUNCA commitar)
+*.pem
+*.p12
+*.json
+!pyproject.toml
+service-account*.json
+oci_api_key*
+
+# IDE
+.vscode/
+.idea/
+*.swp
